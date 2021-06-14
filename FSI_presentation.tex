@@ -93,7 +93,7 @@
 %\end{frame}
 %}		
 
-{\usebackgroundtemplate{ \parbox[b][\paperheight][b]{\paperwidth}{\centering\includegraphics[width=\paperwidth]{Personal_BG/ry06mg.jpg}}} 
+{\usebackgroundtemplate{ \parbox[b][\paperheight][b]{\paperwidth}{\centering\includegraphics[width=\paperwidth]{Personal_BG/ew07mc.jpg}}} 
 
 \begin{frame}[plain,noframenumbering]
     \titlepage
@@ -193,37 +193,134 @@ Open to perform multi-physics simulations:
 
 
 
-\begin{frame}{FSI Simulations using MBDyn}
+\section{Adapter}
 
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-        \node[inner sep=0pt] (mbdyn) at (0,0)
-            {\includegraphics[width=.25\textwidth]{images/mbdyn.png}};
-        \node[inner sep=0pt] (precice) at (0,-2.5)
-            {\includegraphics[width=.25\textwidth]{images/precice.png}};
-        \node[inner sep=0pt] (of) at (-4,-5) 
-            {\includegraphics[width=.2\textwidth]{images/of.jpeg}};
-        \node[inner sep=0pt] (su2) at (-1.25,-5) 
-            {\includegraphics[width=.12\textwidth]{images/logoSU2.png}};
-        \node[inner sep=0pt] (cfd) at (0.5,-5) 
-            {\includegraphics[width=.14\textwidth]{images/simulation-CFD.png}};
-        \node[inner sep=0pt] (aster) at (4,-5) 
-            {\includegraphics[width=.125\textwidth]{images/Logo_aster.png}};
-        \draw[<->,thick] (mbdyn.south) -- (precice.north)
-            node[midway,fill=white,text=orange] {\large{\textbf{adapter}}};
-         \draw[->,thick] (precice.south) -- (of.north east)
-            node[midway] {};
-         \draw[->,thick] (precice.south) -- (su2.north)
-            node[midway,fill=white, text=cyan] {\large{\textbf{FSI}}};
-         \draw[->,thick] (precice.south) -- (cfd.north)
-            node[midway] {};
-         \draw[->,thick] (precice.south) -- (aster.north west)
-            node[midway,fill=white, text=teal] {\large{\textbf{SSI}}};
-            
-\end{tikzpicture}
-\end{figure}
 
+\begin{frame}{Motivation}
+
+    %Development started long ago:
+    
+    %\vspace{2mm}
+    
+    \begin{itemize}
+        \item Exploit \textcolor{dorange}{\textbf{MBDyn}} features like \textbf{\texttt{external structural mapping}}
+        
+        \vspace{2mm}
+        
+        \item 2 mappings (\textcolor{dorange}{nodes} $\to$ \textcolor{teal}{interface points} $\to$ \textcolor{dblue}{fluid mesh})
+        \begin{itemize}
+        \vspace{1mm}
+            \item \textcolor{dorange}{\textbf{MBDyn}} mapping considers rotations, might use few nodes
+            \vspace{1mm}
+            \item \textcolor{pblue}{\textbf{preCICE}} mapping simple (NN) or local (RBF)
+        \end{itemize}
+
+        \vspace{2mm}
+        
+        \pause
+        
+        \item build a \textbf{flexible} adapter:
+        
+        \begin{itemize}
+            \item configuration file, progressive loading \ldots
+        \end{itemize}
+        
+        \vspace{2mm}
+        
+        \pause
+        
+        \item validate the setup through some classical \textbf{benchmark cases}:
+        
+        \begin{itemize}
+            \item flexible slender object immersed in incompressible flow
+            \item found issues with the classical \textbf{Turek-Hron} benchmark
+        \end{itemize}
+        
+        %\vspace{2mm}
+        
+        %\item 
+        
+    \end{itemize}
+    \pause
+    \vspace{3mm}
+    \textbf{Installation} and \textbf{configuration} instructions currently available here:
+    \vspace{2mm}
+    \footnotesize
+    \url{https://public.gitlab.polimi.it/DAER/mbdyn/-/wikis/preCICE-MBDyn-adapter}
+    
+\end{frame}
+
+
+
+\begin{frame}{Coupling sequence}
+    
+%Tell something about coupling sequence. 
+
+
+\begin{columns}
+
+
+\begin{column}{0.5\textwidth}
+\textcolor{dorange}{\textbf{MBDyn}}:
+
+\vspace{0.2cm}
+
+\begin{itemize}
+    \item \textcolor{teal}{\textbf{computes}} motion step at $t_k, i_j$
+    \item \textcolor{fgreen}{\textbf{sends}} motion to peer
+    \item \textcolor{dblue}{\textbf{receives}} forces based on kinematics at $i_j$
+    \item \textcolor{indigo}{\textbf{iterates}} until peer converges
+\end{itemize}
+
+%\centering
+$$f\left(y_k^{(j)},\dot{y}_k^{(j)},u_k^{(j-1)}\right)=0$$
+
+\pause
+
+\begin{itemize}
+    \item \textcolor{dorange}{\textbf{MBDyn}} must start first
+    \item \textbf{added mass instability} when:
+\end{itemize}
+
+$$M = \frac{\rho_f}{\rho_s} > 0.25$$
+
+
+\end{column}
+
+\pause
+\vrule{}
+\begin{column}{0.5\textwidth}
+\textcolor{pblue}{\textbf{preCICE}} adapter:
+
+\vspace{0.2cm}
+
+\begin{itemize}
+    \item \textcolor{dblue}{\textbf{retrieves}} data from peer
+    \item \textcolor{teal}{\textbf{performs}} computation step
+    \item \textcolor{fgreen}{\textbf{sends}} data to peer
+    \item \textcolor{indigo}{\textbf{advances}} (acceleration)
+\end{itemize}
+
+\pause
+
+\vspace{0.4cm}
+%\centering
+$$f\left(y_k^{(j)},\dot{y}_k^{(j)},u_k^{(j)}\right)=0$$
+
+
+\begin{itemize}
+    %\item currently update in \textbf{adapter}
+    \item currently solved in the \textbf{adapter} with one redundant computation, but still outperforms other solutions
+    \item might be implemented within \textcolor{dorange}{\textbf{MBDyn}}
+\end{itemize}
+
+
+\end{column}
+
+
+\end{columns}
+
+    
 \end{frame}
 
 
@@ -231,7 +328,7 @@ Open to perform multi-physics simulations:
 
 
 
-\section{Adapter}
+
 
 \begin{frame}{MBDyn adapter}
 
@@ -354,80 +451,9 @@ Open to perform multi-physics simulations:
 
 \end{frame}
 
-\begin{frame}{Coupling sequence}
-    
-%Tell something about coupling sequence. 
-
-
-\begin{columns}
-
-
-\begin{column}{0.5\textwidth}
-\textcolor{dorange}{\textbf{MBDyn}}:
-
-\vspace{0.2cm}
-
-\begin{itemize}
-    \item \textcolor{teal}{\textbf{computes}} motion step at $t_k, i_j$
-    \item \textcolor{fgreen}{\textbf{sends}} motion to peer
-    \item \textcolor{dblue}{\textbf{receives}} forces based on kinematics at $i_j$
-    \item \textcolor{indigo}{\textbf{iterates}} until peer converges
-\end{itemize}
-
-%\centering
-$$f\left(y_k^{(j)},\dot{y}_k^{(j)},u_k^{(j-1)}\right)=0$$
-
-\pause
-
-\begin{itemize}
-    \item \textcolor{dorange}{\textbf{MBDyn}} must start first
-    \item \textbf{added mass instability} when:
-\end{itemize}
-
-$$M = \frac{\rho_f}{\rho_s} > 0.25$$
-
-
-\end{column}
-
-\pause
-
-\begin{column}{0.5\textwidth}
-\textcolor{pblue}{\textbf{preCICE}} adapter:
-
-\vspace{0.2cm}
-
-\begin{itemize}
-    \item \textcolor{dblue}{\textbf{retrieves}} data from peer
-    \item \textcolor{teal}{\textbf{performs}} computation step
-    \item \textcolor{fgreen}{\textbf{sends}} data to peer
-    \item \textcolor{indigo}{\textbf{advances}} (acceleration)
-\end{itemize}
-
-\pause
-
-\vspace{0.5cm}
-
-\begin{itemize}
-    \item update in adapter
-    \item one redundant computation, but still outperforms other solutions
-    \item might be implemented in MBDyn
-\end{itemize}
-
-
-\end{column}
-
-
-\end{columns}
-
-    
-\end{frame}
-
 
 
 \section{Turek Hron Benchmark}
-
-
-
 
 
 \begin{frame}{Turek-Hron  Benchmark (turek et. al 2006): domain}
@@ -493,13 +519,30 @@ $$M = \frac{\rho_f}{\rho_s} > 0.25$$
 
 \begin{frame}{Turek-Hron benchmark: tests}
     
-    \begin{itemize}
-        \item Static and dynamic analysis of the structural part (CSM)
-        \item Fixed fluid domain analysis at different velocity (CFD)
-        \item Flexible beam analysis in fluid flow (FSI)
-    \end{itemize}
+    \vspace{0.4cm}
     
-    we followed the same steps to validate the framework
+    \textcolor{fgreen}{\textbf{Initial characterization of separated domains}}:
+    
+    \vspace{0.4cm}
+    
+    \begin{itemize}
+        \item Static and dynamic analysis of the structural part \textbf{(CSM)}
+        \item Fixed fluid domain analysis at different velocity \textbf{(CFD)}
+    \end{itemize}
+
+    \vspace{1cm}
+
+    \textcolor{dblue}{\textbf{Simultaneous analysis of both domains}}:
+
+    \vspace{0.4cm}
+
+    \begin{itemize}
+        \item Flexible beam analysis in fluid flow \textbf{(FSI)}
+    \end{itemize}
+
+    \vspace{1cm}
+    
+    We followed the same steps to validate the framework
     
 \end{frame}
 
@@ -731,27 +774,113 @@ size & drag & lift  & drag & lift & drag & lift  & f  [\si{Hz}]\\
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 \section{FSI Test Cases}
+
+\begin{frame}{Turek-Hron FSI1 Benchmark: simulation}
+
+\begin{columns}
+
+\column{0.5\textwidth}    
+
+\vspace{0.5cm}
+
+\begin{figure}
+    \centering
+    \begin{subfigure}{0.95\textwidth}
+    
+    \includegraphics[width=\linewidth, trim=0 200 0 120, clip]{images/FSI1/FSI1_vel.png}
+    \caption{t=10s velocity}
+    \end{subfigure}\hfil
+    
+    \medskip
+    
+    \begin{subfigure}{0.95\textwidth}
+    
+    \includegraphics[width=\linewidth, trim=0 200 0 120, clip]{images/FSI1/FSI1_p.png}
+    \caption{t=10s pressure}  
+    \end{subfigure}\hfil
+    
+    
+    
+\end{figure}
+
+
+\column{0.5\textwidth}
+
+\footnotesize
+\begin{itemize}
+    \itemsep 10pt
+    \item \textbf{MBDyn} model:
+    \begin{itemize}
+        \item 4 \texttt{beam3} elements
+    \end{itemize}
+    
+    \item \textbf{OpenFOAM} model: \texttt{pimpleFOAM}
+    \begin{itemize}
+        \item $25k \to 49k$ \texttt{hex} cells
+    \end{itemize}
+    \item \textbf{preCICE} configuration:
+    \begin{itemize}
+        \item serial implicit c. (S $\to$ F)
+        \item mapping: RBF
+        \item acceleration: IQN-ILS
+    \end{itemize}
+    %\pause
+    \item \textbf{performance}
+    \begin{itemize}
+        \item 2.8 avg. iterations to converge
+    \end{itemize}
+\end{itemize}
+
+\end{columns}
+
+\end{frame}
+
+
+\begin{frame}{Turek-Hron FSI1 Benchmark: results}
+
+
+\begin{figure}[htb]
+%\vspace*{-0.8cm}
+\centering % <-- added
+\begin{subfigure}{0.5\textwidth}
+  \includegraphics[width=\linewidth, trim=0 0 0 0, clip]{images/FSI1/fsi1_displ_pres.png}
+  \caption{tip displacement}
+  %\label{fig:fsi2_v1}
+\end{subfigure}\hfil % <-- added
+\begin{subfigure}{0.5\textwidth}
+  \includegraphics[width=\linewidth, trim=0 0 0 0, clip]{images/FSI1/fsi1_forces_pres.png}
+  \caption{forces on structure}
+  %\label{fig:fsi2_p1}
+\end{subfigure}\hfil % <-- added
+    
+\end{figure}
+
+
+
+\footnotesize
+\begin{table}[h!]
+%\caption{FSI1 results}
+\label{tab:fsi1}
+\begin{center}
+\begin{tabular}{ c | c c | c c  }
+size & $u_x$ [\si{mm}] & $u_y$ [\si{mm}]  & drag [\si{N.m^{-1}}] & lift [\si{N.m^{-1}}] \\
+\hline
+25k    & 0.021 & 0.884 & 14.279 & 0.732   \\
+\hline
+49k    & 0.021   & 0.887 & 14.283 & 0.733 \\
+\hline
+\hline
+\textbf{ref.}  &  \textbf{0.023} & \textbf{0.821} & \textbf{14.295} & \textbf{0.764}  \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+\end{frame}
+
 
 
 
@@ -762,7 +891,7 @@ size & drag & lift  & drag & lift & drag & lift  & f  [\si{Hz}]\\
 \column{0.5\textwidth}    
 
 \begin{figure}[htb]
-\vspace*{-0.8cm}
+%\vspace*{-0.8cm}
 \centering % <-- added
 \begin{subfigure}{0.5\textwidth}
   \includegraphics[width=\linewidth, trim=0 120 0 120, clip]{images/FSI2/fsi2_v1.png}
@@ -810,7 +939,11 @@ size & drag & lift  & drag & lift & drag & lift  & f  [\si{Hz}]\\
 \footnotesize
 \begin{itemize}
     \itemsep 10pt
-    \item \textbf{MBDyn} model: 10 \texttt{beam3} elements
+    \item \textbf{MBDyn} model:
+    \begin{itemize}
+        \item 4 \texttt{beam3} elements 
+    \end{itemize}
+    
     \item \textbf{OpenFOAM} model: \texttt{pimpleFOAM}
     \begin{itemize}
         \item $\approx 25k$ \texttt{hex} cells
@@ -824,7 +957,7 @@ size & drag & lift  & drag & lift & drag & lift  & f  [\si{Hz}]\\
     %\pause
     \item \textbf{performance}
     \begin{itemize}
-        \item 14.5 avg. iterations to converge
+        \item 3.8 avg. iterations to converge
     \end{itemize}
 \end{itemize}
 
@@ -848,13 +981,11 @@ comparison made on \\ \textbf{tip displacements}:
 \begin{figure}[htbp!]
     %\vspace{-1.8cm}
 	%\centering
-	\includegraphics[width=0.9\textwidth, trim=20 20 20 20, clip]{images/FSI2/disp_fsi2_pres.png}
+	\includegraphics[width=0.9\textwidth, trim=20 20 20 20, clip]{images/FSI2/fsi2_displ_pres.png}
 \end{figure}
 
 
 \end{columns}
-
-
 
 
 
@@ -869,7 +1000,8 @@ comparison made on \\ \textbf{tip displacements}:
 	Gjertsen & $-14.83\pm13.11$ & & $1.24\pm81.6$ & \\
 	Degroote & $-14.07\pm12.37$ & $3.7$ & $1.18\pm76.5$ & $1.9$ \\
 	\hline
-	Present study & $-14.95\pm9.85$ & $3.87$ & $2.78\pm83.39$ & $1.93$ \\ 
+	\cellcolor{green!10}\textbf{Present study} & \cellcolor{green!10}$-12.86\pm10.05$ & 
+	\cellcolor{green!10}$3.84$ & \cellcolor{green!10}$0.91\pm79.72$ & \cellcolor{green!10}$1.92$ \\ 
 \end{tabular}
     
 \end{center}
@@ -878,6 +1010,273 @@ comparison made on \\ \textbf{tip displacements}:
 
 \end{frame}
 
+
+\begin{frame}{Turek-Hron FSI2 Benchmark: results}
+
+\begin{columns}
+
+\column{0.3\textwidth}
+%\vspace{1cm}
+and on\\ \textbf{overall lift and drag}:
+
+\column{0.7\textwidth}
+
+
+\vspace{-1cm}
+
+\begin{figure}[htbp!]
+    %\vspace{-1.8cm}
+	\centering
+	\includegraphics[width=0.9\textwidth, trim=20 40 20 20, clip]{images/FSI2/fsi2_forces_pres.png}
+\end{figure}
+
+\end{columns}
+
+\footnotesize
+\begin{center}
+\begin{tabular}{ l | c c | c c  |  } 
+	Study & drag \si{N.m^{-1}} & f \si{Hz} & lift \si{N.m^{-1}} & f \si{Hz}    \\ 
+	\hline
+	\hline
+	Benchmark & $208.83\pm73.75$ & $3.8$ & $0.88\pm234.2$ & $2.0$     \\
+	Turek et al. (2010) & $215.06\pm77.63$ & $3.86$ & $0.61\pm237.8$ & $1.93$\\   
+	Gjertsen & $161.50\pm73.75$ & & $0.88\pm234.2$ & \\
+	Degroote  & $217.52\pm84.65$ & $3.7$ & $-0.74\pm267.6$ & $1.9$ \\
+	\hline
+	\cellcolor{green!10}\textbf{Present study} & \cellcolor{green!10}$209.04\pm27.79$ &
+	\cellcolor{green!10}$3.84$ & \cellcolor{green!10}$0.28\pm269.73$ & \cellcolor{green!10}$1.92$ \\
+\end{tabular}
+    
+\end{center}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FSI 3 %%%%%%
+
+\begin{frame}{Turek-Hron FSI3 Benchmark: simulation}
+
+\begin{columns}
+
+\column{0.5\textwidth}    
+
+\begin{figure}[htb]
+%\vspace*{-0.8cm}
+\centering % <-- added
+\begin{subfigure}{0.5\textwidth}
+  \includegraphics[width=\linewidth, trim=0 120 0 120, clip]{images/FSI3/fsi3_v1.png}
+  \caption{t=7.57s velocity}
+  \label{fig:fsi3_v1}
+\end{subfigure}\hfil % <-- added
+\begin{subfigure}{0.5\textwidth}
+  \includegraphics[width=\linewidth, trim=0 120 0 120, clip]{images/FSI3/fsi3_p1.png}
+  \caption{t=7.57s pressure}
+  \label{fig:fsi3_p1}
+\end{subfigure}\hfil % <-- added
+
+\medskip
+
+\begin{subfigure}{0.5\textwidth}
+  \includegraphics[width=\linewidth, trim=0 120 0 120, clip]{images/FSI3/fsi3_v2.png}
+  \caption{t=7.62s velocity}
+  \label{fig:fsi3_v2}
+\end{subfigure}\hfil % <-- added
+\begin{subfigure}{0.5\textwidth}
+  \includegraphics[width=\linewidth, trim=0 120 0 120, clip]{images/FSI3/fsi3_p2.png}
+  \caption{t=7.62s pressure}
+  \label{fig:fsi3_p2}
+\end{subfigure}\hfil % <-- added
+
+\medskip
+
+\begin{subfigure}{0.5\textwidth}
+  \includegraphics[width=\linewidth, trim=0 120 0 120, clip]{images/FSI3/fsi3_v3.png}
+  \caption{t=7.67s velocity}
+  \label{fig:fsi3_v3}
+\end{subfigure}\hfil % <-- added
+\begin{subfigure}{0.5\textwidth}
+  \includegraphics[width=\linewidth, trim=0 120 0 120, clip]{images/FSI3/fsi3_p3.png}
+  \caption{t=7.67s pressure}
+  \label{fig:fsi3_p3}
+\end{subfigure}\hfil % <-- added
+
+%\caption{FSI2: fluid solution}
+\label{fig:FSI3_sol}
+\end{figure}
+
+\column{0.5\textwidth}
+
+\footnotesize
+\begin{itemize}
+    \itemsep 10pt
+    \item \textbf{MBDyn} model:
+    \begin{itemize}
+        \item $4 \to 5$ \texttt{beam3} elements 
+    \end{itemize}
+    
+    \item \textbf{OpenFOAM} model: \texttt{pimpleFOAM}
+    \begin{itemize}
+        \item $25k \to 49k$ \texttt{hex} cells
+    \end{itemize}
+    \item \textbf{preCICE} configuration:
+    \begin{itemize}
+        \item serial implicit coupling
+        \item mapping: RBF
+        \item acceleration: IQN-ILS
+    \end{itemize}
+    %\pause
+    \item \textbf{performance}
+    \begin{itemize}
+        \item 3.5 avg. iterations to converge
+    \end{itemize}
+\end{itemize}
+
+\end{columns}
+
+\end{frame}
+
+
+\begin{frame}{Turek-Hron FSI3 Benchmark: results}
+
+\begin{columns}
+
+\column{0.4\textwidth}
+%\vspace{1cm}
+comparison made on \\ \textbf{tip displacements}:
+
+\column{0.6\textwidth}
+
+
+\vspace{-1cm}
+\begin{figure}[htbp!]
+    %\vspace{-1.8cm}
+	%\centering
+	\includegraphics[width=0.9\textwidth, trim=20 20 20 20, clip]{images/FSI3/fsi3_displ_pres.png}
+\end{figure}
+
+
+\end{columns}
+
+
+
+\footnotesize
+\begin{table}[h!]
+%\caption{FSI3 results (displacements)}
+\label{tab:fsi3_d}
+\begin{center}
+\begin{tabular}{ c | c | c c | c c  }
+size & N & $u_x$ [\si{mm}] & f [\si{Hz}] & $u_y$ [\si{mm}]  & f [\si{Hz}] \\
+\hline
+25k & 5   & -3.76$\pm$2.9 & 8.86 & 1.14$\pm$46.92 & 4.43   \\
+\hline
+49k  & 5   & -1.91$\pm$1.91   & 9.26 & 2.17$\pm$33.78 & 4.63 \\
+\hline
+%25k & 4   & -2.53$\pm$2.22 & 9.19 & 2$\pm$40.28 & 4.59   \\
+25k & 4 & -3.51$\pm$2.77 & 9.24 & 1.38$\pm$45.9 & 4.59   \\
+\hline
+%49k  & 4   & -1.42$\pm$1.45   & 9.57 & 1.82$\pm$29.33 & 4.79 \\
+49k  & 4   & -1.83$\pm$1.85   & 9.32 & 2.12$\pm$33.06 & 4.66 \\
+\hline
+90k  & 4   & -1.83$\pm$1.85   & 9.32 & 2.12$\pm$33.06 & 4.66 \\
+\hline
+\hline
+ref.  &  & -2.69$\pm$2.53  & 10.9 & 1.48$\pm$34.38 & 5.3  \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\end{frame}
+
+
+\begin{frame}{Turek-Hron FSI3 Benchmark: results}
+
+\begin{columns}
+
+\column{0.4\textwidth}
+%\vspace{1cm}
+and on\\ \textbf{overall lift and drag}:
+
+\column{0.6\textwidth}
+
+
+\vspace{-1cm}
+
+\begin{figure}[htbp!]
+    %\vspace{-1.8cm}
+	\centering
+	\includegraphics[width=0.9\textwidth, trim=20 40 20 20, clip]{images/FSI3/fsi3_forces_pres.png}
+\end{figure}
+
+\end{columns}
+
+\footnotesize
+\begin{table}[h!]
+%\caption{FSI3 results (forces)}
+\label{tab:fsi3_f}
+\begin{center}
+\begin{tabular}{ c | c | c c | c c  }
+size & N & drag [\si{N.m^{-1}}] & f [\si{Hz}] & lift [\si{N.m^{-1}}]  & f [\si{Hz}] \\
+\hline
+25k & 5   & 515.54$\pm$35.07 & 8.87 & -1.28$\pm$78.65 & 4.43   \\
+\hline
+49k & 5    & 481.24$\pm$17.64   & 9.26 & -0.48$\pm$164.52 & 4.63 \\
+\hline
+%25k & 4   & 501.12$\pm$30.11 & 9.19 & 3.37$\pm$97.31 & 4.59   \\
+25k & 4   & 502.62$\pm$30.03 & 9.24 & 1.51$\pm$97.31 & 4.59   \\
+\hline
+%49k & 4    & 476.83$\pm$21.55   & 9.57 & 1.27$\pm$98.53 & 4.79 \\
+49k & 4    & 481.12$\pm$19.07   & 9.32 & -0.20$\pm$157.64 & 4.66 \\
+\hline
+90k & 4    & 481.12$\pm$19.07   & 9.32 & -0.20$\pm$157.64 & 4.66 \\
+\hline
+\hline
+ref. &   &  457.3$\pm$22.66  & 10.9 & 2.22$\pm$149.78 & 5.3  \\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\end{frame}
+
+
+
+\begin{frame}{Turek-Hron FSI3 Benchmark: evaluations}
+    
+    \begin{itemize}
+        \item Many \textcolor{teal}{\textbf{parameters}} affect the \textbf{results}:
+        
+        \vspace{2mm}
+        
+        \begin{itemize}
+            \item \textcolor{dorange}{\textbf{structural discretization}}: flap stiffness
+            \item \textcolor{indigo}{\textbf{structural damping}}: oscillation amplitude and frequency
+            \item \textcolor{teal}{\textbf{fluid discretization}}: forces on structure
+            \item \textcolor{dblue}{\textbf{OF mesh deformation}} requires reduction in $\Delta t$ for finer mesh
+        \end{itemize}
+        
+        \vspace{3mm}
+        
+        \item trade-off between \textcolor{teal}{\textbf{accuracy}} and \textcolor{teal}{\textbf{efficiency}} (execution time)
+        
+        \vspace{3mm}
+        
+        \item \textcolor{fgreen}{\textbf{oscillation frequency}} lower than the benchmark:
+        
+        \vspace{2mm}
+        
+        \begin{itemize}
+            \item \textbf{Partitioned algorithms} in the review show lower frequency
+            \item \textbf{comparison} with the results from other couplings
+        \end{itemize}
+        
+        \vspace{3mm}
+        
+        \item \textbf{Serial coupling} $S \to F$ outperforms $F \to S$, as \texttt{diplacements} converge much faster than \texttt{forces}, which benefit from \textbf{acceleration}
+        
+    \end{itemize}
+    
+    
+\end{frame}
 
 
 
@@ -893,9 +1292,9 @@ comparison made on \\ \textbf{tip displacements}:
 \textcolor{pblue}{\textbf{Goals}}:
 
 \begin{itemize}
-    \item Exploit \textcolor{pblue}{\textbf{MBDyn}} capabilities to perform fluid-structure co-simulation
-    \item Integrate \textit{MBDyn} with \textcolor{pblue}{\textbf{preCICE}} to guarantee a common interface to multiple CFD solvers
-    \item validate the \textcolor{pblue}{\textbf{FSI}} simulation with the proposed setup
+    \item Exploit \textcolor{dorange}{\textbf{MBDyn}} capabilities to perform fluid-structure co-simulation
+    \item Integrate \textcolor{dorange}{\textbf{MBDyn}} with \textcolor{pblue}{\textbf{preCICE}} to guarantee a common interface to multiple CFD solvers
+    \item validate the \textcolor{pblue}{\textbf{setup}} with a well-known \textcolor{pblue}{\textbf{benchmark}}  
 \end{itemize}
 
 \pause
@@ -916,7 +1315,7 @@ comparison made on \\ \textbf{tip displacements}:
 \textcolor{dorange}{\textbf{Open points}}:
 
 \begin{itemize}
-    \item Possible improvement in computation and data exchange between MBDyn and preCICE 
+    \item Possible improvement in computation and data exchange between \textcolor{dorange}{\textbf{MBDyn}} and \textcolor{pblue}{\textbf{preCICE}} 
 \end{itemize}
 
 
@@ -945,7 +1344,7 @@ comparison made on \\ \textbf{tip displacements}:
     \item \textcolor{pblue}{\textbf{Simulation side}}
     
         \begin{itemize}
-            \item Reduce, possibly solve, convergence issues with \textit{mass ratio}
+            %\item Reduce, possibly solve, convergence issues with \textit{mass ratio}
             \item Verify scalability, with more complex 3D cases
         \end{itemize}
 
@@ -954,7 +1353,8 @@ comparison made on \\ \textbf{tip displacements}:
     \item \textcolor{pblue}{\textbf{Application side}}
     
         \begin{itemize}
-            \item Find further, different benchmarks (other than incompressible flow), users and cases
+            \item Make the adapter known and help other users with the setup/configuration of cases
+            \item Find further, different benchmarks (other than incompressible flow)
             \item Use or extend this setup also for \textbf{SSI} problems 
         \end{itemize}
     
@@ -977,20 +1377,44 @@ comparison made on \\ \textbf{tip displacements}:
 
 
 
-
-
-
-
-
-
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
 
 
 
 
+
+\begin{frame}{FSI Simulations using MBDyn}
+
+\begin{figure}
+    \centering
+    \begin{tikzpicture}
+        \node[inner sep=0pt] (mbdyn) at (0,0)
+            {\includegraphics[width=.25\textwidth]{images/mbdyn.png}};
+        \node[inner sep=0pt] (precice) at (0,-2.5)
+            {\includegraphics[width=.25\textwidth]{images/precice.png}};
+        \node[inner sep=0pt] (of) at (-4,-5) 
+            {\includegraphics[width=.2\textwidth]{images/of.jpeg}};
+        \node[inner sep=0pt] (su2) at (-1.25,-5) 
+            {\includegraphics[width=.12\textwidth]{images/logoSU2.png}};
+        \node[inner sep=0pt] (cfd) at (0.5,-5) 
+            {\includegraphics[width=.14\textwidth]{images/simulation-CFD.png}};
+        \node[inner sep=0pt] (aster) at (4,-5) 
+            {\includegraphics[width=.125\textwidth]{images/Logo_aster.png}};
+        \draw[<->,thick] (mbdyn.south) -- (precice.north)
+            node[midway,fill=white,text=orange] {\large{\textbf{adapter}}};
+         \draw[->,thick] (precice.south) -- (of.north east)
+            node[midway] {};
+         \draw[->,thick] (precice.south) -- (su2.north)
+            node[midway,fill=white, text=cyan] {\large{\textbf{FSI}}};
+         \draw[->,thick] (precice.south) -- (cfd.north)
+            node[midway] {};
+         \draw[->,thick] (precice.south) -- (aster.north west)
+            node[midway,fill=white, text=teal] {\large{\textbf{SSI}}};
+            
+\end{tikzpicture}
+\end{figure}
+
+\end{frame}
 
 
 \end{document}
