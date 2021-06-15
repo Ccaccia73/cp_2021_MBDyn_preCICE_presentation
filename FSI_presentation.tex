@@ -93,7 +93,7 @@
 %\end{frame}
 %}		
 
-{\usebackgroundtemplate{ \parbox[b][\paperheight][b]{\paperwidth}{\centering\includegraphics[width=\paperwidth]{Personal_BG/ew07mc.jpg}}} 
+{\usebackgroundtemplate{ \parbox[b][\paperheight][b]{\paperwidth}{\centering\includegraphics[width=\paperwidth]{Personal_BG/ej01mc.jpg}}} 
 
 \begin{frame}[plain,noframenumbering]
     \titlepage
@@ -219,7 +219,7 @@ Open to perform multi-physics simulations:
         
         \pause
         
-        \item build a \textbf{flexible} adapter:
+        \item build a \textcolor{teal}{\textbf{flexible}} adapter:
         
         \begin{itemize}
             \item configuration file, progressive loading \ldots
@@ -229,7 +229,7 @@ Open to perform multi-physics simulations:
         
         \pause
         
-        \item validate the setup through some classical \textbf{benchmark cases}:
+        \item \textcolor{dblue}{\textbf{validate}} the setup through some classical \textbf{benchmark cases}:
         
         \begin{itemize}
             \item flexible slender object immersed in incompressible flow
@@ -243,88 +243,12 @@ Open to perform multi-physics simulations:
     \end{itemize}
     \pause
     \vspace{3mm}
-    \textbf{Installation} and \textbf{configuration} instructions currently available here:
-    \vspace{2mm}
+    \textbf{Installation} and \textbf{configuration} instructions currently available here:\\
+    \vspace{3mm}
     \footnotesize
     \url{https://public.gitlab.polimi.it/DAER/mbdyn/-/wikis/preCICE-MBDyn-adapter}
     
 \end{frame}
-
-
-
-\begin{frame}{Coupling sequence}
-    
-%Tell something about coupling sequence. 
-
-
-\begin{columns}
-
-
-\begin{column}{0.5\textwidth}
-\textcolor{dorange}{\textbf{MBDyn}}:
-
-\vspace{0.2cm}
-
-\begin{itemize}
-    \item \textcolor{teal}{\textbf{computes}} motion step at $t_k, i_j$
-    \item \textcolor{fgreen}{\textbf{sends}} motion to peer
-    \item \textcolor{dblue}{\textbf{receives}} forces based on kinematics at $i_j$
-    \item \textcolor{indigo}{\textbf{iterates}} until peer converges
-\end{itemize}
-
-%\centering
-$$f\left(y_k^{(j)},\dot{y}_k^{(j)},u_k^{(j-1)}\right)=0$$
-
-\pause
-
-\begin{itemize}
-    \item \textcolor{dorange}{\textbf{MBDyn}} must start first
-    \item \textbf{added mass instability} when:
-\end{itemize}
-
-$$M = \frac{\rho_f}{\rho_s} > 0.25$$
-
-
-\end{column}
-
-\pause
-\vrule{}
-\begin{column}{0.5\textwidth}
-\textcolor{pblue}{\textbf{preCICE}} adapter:
-
-\vspace{0.2cm}
-
-\begin{itemize}
-    \item \textcolor{dblue}{\textbf{retrieves}} data from peer
-    \item \textcolor{teal}{\textbf{performs}} computation step
-    \item \textcolor{fgreen}{\textbf{sends}} data to peer
-    \item \textcolor{indigo}{\textbf{advances}} (acceleration)
-\end{itemize}
-
-\pause
-
-\vspace{0.4cm}
-%\centering
-$$f\left(y_k^{(j)},\dot{y}_k^{(j)},u_k^{(j)}\right)=0$$
-
-
-\begin{itemize}
-    %\item currently update in \textbf{adapter}
-    \item currently solved in the \textbf{adapter} with one redundant computation, but still outperforms other solutions
-    \item might be implemented within \textcolor{dorange}{\textbf{MBDyn}}
-\end{itemize}
-
-
-\end{column}
-
-
-\end{columns}
-
-    
-\end{frame}
-
-
-
 
 
 
@@ -400,7 +324,9 @@ $$f\left(y_k^{(j)},\dot{y}_k^{(j)},u_k^{(j)}\right)=0$$
 \end{frame}
 
 \begin{frame}{Adapter Input}
-  \vspace{1.0cm}
+  \vspace{5mm}
+  JSON configuration file with information concerning:
+  \vspace{5mm}
   \begin{description}[Simulation]
   \itemsep 10pt
   \item[preCICE] \textcolor{dorange}{config file, participant name, ...}
@@ -450,6 +376,81 @@ $$f\left(y_k^{(j)},\dot{y}_k^{(j)},u_k^{(j)}\right)=0$$
 
 
 \end{frame}
+
+
+\begin{frame}{Coupling sequence}
+    
+%Tell something about coupling sequence. 
+
+
+\begin{columns}
+
+
+\begin{column}{0.5\textwidth}
+\textcolor{dorange}{\textbf{MBDyn}}:
+
+\vspace{0.2cm}
+
+\begin{itemize}
+    \item \textcolor{teal}{\textbf{computes}} motion step at $t_k, i_j$
+    \item \textcolor{fgreen}{\textbf{sends}} motion to peer
+    \item \textcolor{dblue}{\textbf{receives}} forces based on kinematics at $i_j$
+    \item \textcolor{indigo}{\textbf{iterates}} until peer converges
+\end{itemize}
+
+%\centering
+$$f\left(y_k^{(j)},\dot{y}_k^{(j)},u_k^{(j-1)}\right)=0$$
+
+\pause
+
+\begin{itemize}
+    \item \textcolor{dorange}{\textbf{MBDyn}} must start first
+    \item \textbf{added mass instability} when:
+\end{itemize}
+
+$$M = \frac{\rho_f}{\rho_s} > 0.25$$
+
+
+\end{column}
+
+\pause
+\vrule{}
+\begin{column}{0.5\textwidth}
+\textcolor{pblue}{\textbf{preCICE}} adapter:
+
+\vspace{0.2cm}
+
+\begin{itemize}
+    \item \textcolor{dblue}{\textbf{retrieves}} data from peer
+    \item \textcolor{teal}{\textbf{performs}} computation step
+    \item \textcolor{fgreen}{\textbf{sends}} data to peer
+    \item \textcolor{indigo}{\textbf{advances}} (acceleration)
+\end{itemize}
+
+
+
+\vspace{0.4cm}
+%\centering
+$$f\left(y_k^{(j)},\dot{y}_k^{(j)},u_k^{(j)}\right)=0$$
+
+\pause
+
+\begin{itemize}
+    %\item currently update in \textbf{adapter}
+    \item currently solved in the \textbf{adapter} with one redundant computation, but still outperforms other solutions
+    \item might be implemented within \textcolor{dorange}{\textbf{MBDyn}}
+\end{itemize}
+
+
+\end{column}
+
+
+\end{columns}
+
+    
+\end{frame}
+
+
 
 
 
@@ -542,7 +543,7 @@ $$f\left(y_k^{(j)},\dot{y}_k^{(j)},u_k^{(j)}\right)=0$$
 
     \vspace{1cm}
     
-    We followed the same steps to validate the framework
+    We followed the same steps to validate the \textcolor{indigo}{\textbf{adapter}}
     
 \end{frame}
 
@@ -778,6 +779,8 @@ size & drag & lift  & drag & lift & drag & lift  & f  [\si{Hz}]\\
 
 \begin{frame}{Turek-Hron FSI1 Benchmark: simulation}
 
+$u=0.2$ \si{m.s^{-1}}, $\rho_s=10^3$ \si{kg.m^{-3}}, $E= 5.6$\si{MPa},$Re=20$, $M=1$
+
 \begin{columns}
 
 \column{0.5\textwidth}    
@@ -804,11 +807,12 @@ size & drag & lift  & drag & lift & drag & lift  & f  [\si{Hz}]\\
     
 \end{figure}
 
-
+%\small
 \column{0.5\textwidth}
 
-\footnotesize
+
 \begin{itemize}
+    \footnotesize
     \itemsep 10pt
     \item \textbf{MBDyn} model:
     \begin{itemize}
@@ -886,6 +890,8 @@ size & $u_x$ [\si{mm}] & $u_y$ [\si{mm}]  & drag [\si{N.m^{-1}}] & lift [\si{N.m
 
 \begin{frame}{Turek-Hron FSI2 Benchmark: simulation}
 
+$u=1$ \si{m.s^{-1}}, $\rho_s=10^4$ \si{kg.m^{-3}}, $E= 1.4$ \si{MPa}, $Re=100$, $M=0.1$
+
 \begin{columns}
 
 \column{0.5\textwidth}    
@@ -938,6 +944,7 @@ size & $u_x$ [\si{mm}] & $u_y$ [\si{mm}]  & drag [\si{N.m^{-1}}] & lift [\si{N.m
 
 \footnotesize
 \begin{itemize}
+\footnotesize
     \itemsep 10pt
     \item \textbf{MBDyn} model:
     \begin{itemize}
@@ -1055,6 +1062,8 @@ and on\\ \textbf{overall lift and drag}:
 
 \begin{frame}{Turek-Hron FSI3 Benchmark: simulation}
 
+$u=2$ \si{m.s^{-1}}, $\rho_s=10^3$ \si{kg.m^{-3}}, $E= 5.6$ \si{MPa}, $Re=200$, $M=1$
+
 \begin{columns}
 
 \column{0.5\textwidth}    
@@ -1107,6 +1116,7 @@ and on\\ \textbf{overall lift and drag}:
 
 \footnotesize
 \begin{itemize}
+    \footnotesize
     \itemsep 10pt
     \item \textbf{MBDyn} model:
     \begin{itemize}
@@ -1176,7 +1186,7 @@ size & N & $u_x$ [\si{mm}] & f [\si{Hz}] & $u_y$ [\si{mm}]  & f [\si{Hz}] \\
 %49k  & 4   & -1.42$\pm$1.45   & 9.57 & 1.82$\pm$29.33 & 4.79 \\
 49k  & 4   & -1.83$\pm$1.85   & 9.32 & 2.12$\pm$33.06 & 4.66 \\
 \hline
-90k  & 4   & -1.83$\pm$1.85   & 9.32 & 2.12$\pm$33.06 & 4.66 \\
+90k  & 4   & -2.05$\pm$2.11   & 9.27 & 1.76$\pm$36.37 & 4.64 \\
 \hline
 \hline
 ref.  &  & -2.69$\pm$2.53  & 10.9 & 1.48$\pm$34.38 & 5.3  \\
@@ -1227,7 +1237,7 @@ size & N & drag [\si{N.m^{-1}}] & f [\si{Hz}] & lift [\si{N.m^{-1}}]  & f [\si{H
 %49k & 4    & 476.83$\pm$21.55   & 9.57 & 1.27$\pm$98.53 & 4.79 \\
 49k & 4    & 481.12$\pm$19.07   & 9.32 & -0.20$\pm$157.64 & 4.66 \\
 \hline
-90k & 4    & 481.12$\pm$19.07   & 9.32 & -0.20$\pm$157.64 & 4.66 \\
+90k & 4    & 489.41$\pm$22.23   & 9.27 & 0.21$\pm$158.82 & 4.63 \\
 \hline
 \hline
 ref. &   &  457.3$\pm$22.66  & 10.9 & 2.22$\pm$149.78 & 5.3  \\
@@ -1277,7 +1287,7 @@ ref. &   &  457.3$\pm$22.66  & 10.9 & 2.22$\pm$149.78 & 5.3  \\
         
         \pause
         
-        \item \textbf{Serial coupling} $S \to F$ outperforms $F \to S$, as \texttt{diplacements} converge much faster than \texttt{forces}, which benefit from \textbf{acceleration}
+        \item \textbf{Serial coupling} $S \to F$ outperforms $F \to S$, as \texttt{displacements} converge much faster than \texttt{forces}, which benefit from \textbf{acceleration}
         
     \end{itemize}
     
@@ -1389,38 +1399,38 @@ ref. &   &  457.3$\pm$22.66  & 10.9 & 2.22$\pm$149.78 & 5.3  \\
 
 
 
-\begin{frame}{FSI Simulations using MBDyn}
+%\begin{frame}{FSI Simulations using MBDyn}
 
-\begin{figure}
-    \centering
-    \begin{tikzpicture}
-        \node[inner sep=0pt] (mbdyn) at (0,0)
-            {\includegraphics[width=.25\textwidth]{images/mbdyn.png}};
-        \node[inner sep=0pt] (precice) at (0,-2.5)
-            {\includegraphics[width=.25\textwidth]{images/precice.png}};
-        \node[inner sep=0pt] (of) at (-4,-5) 
-            {\includegraphics[width=.2\textwidth]{images/of.jpeg}};
-        \node[inner sep=0pt] (su2) at (-1.25,-5) 
-            {\includegraphics[width=.12\textwidth]{images/logoSU2.png}};
-        \node[inner sep=0pt] (cfd) at (0.5,-5) 
-            {\includegraphics[width=.14\textwidth]{images/simulation-CFD.png}};
-        \node[inner sep=0pt] (aster) at (4,-5) 
-            {\includegraphics[width=.125\textwidth]{images/Logo_aster.png}};
-        \draw[<->,thick] (mbdyn.south) -- (precice.north)
-            node[midway,fill=white,text=orange] {\large{\textbf{adapter}}};
-         \draw[->,thick] (precice.south) -- (of.north east)
-            node[midway] {};
-         \draw[->,thick] (precice.south) -- (su2.north)
-            node[midway,fill=white, text=cyan] {\large{\textbf{FSI}}};
-         \draw[->,thick] (precice.south) -- (cfd.north)
-            node[midway] {};
-         \draw[->,thick] (precice.south) -- (aster.north west)
-            node[midway,fill=white, text=teal] {\large{\textbf{SSI}}};
-            
-\end{tikzpicture}
-\end{figure}
-
-\end{frame}
+%\begin{figure}
+%    \centering
+%    \begin{tikzpicture}
+%        \node[inner sep=0pt] (mbdyn) at (0,0)
+%            {\includegraphics[width=.25\textwidth]{images/mbdyn.png}};
+%        \node[inner sep=0pt] (precice) at (0,-2.5)
+%            {\includegraphics[width=.25\textwidth]{images/precice.png}};
+%        \node[inner sep=0pt] (of) at (-4,-5) 
+%            {\includegraphics[width=.2\textwidth]{images/of.jpeg}};
+%        \node[inner sep=0pt] (su2) at (-1.25,-5) 
+%            {\includegraphics[width=.12\textwidth]{images/logoSU2.png}};
+%        \node[inner sep=0pt] (cfd) at (0.5,-5) 
+%            {\includegraphics[width=.14\textwidth]{images/simulation-CFD.png}};
+%        \node[inner sep=0pt] (aster) at (4,-5) 
+%            {\includegraphics[width=.125\textwidth]{images/Logo_aster.png}};
+%        \draw[<->,thick] (mbdyn.south) -- (precice.north)
+%            node[midway,fill=white,text=orange] {\large{\textbf{adapter}}};
+%         \draw[->,thick] (precice.south) -- (of.north east)
+%            node[midway] {};
+%         \draw[->,thick] (precice.south) -- (su2.north)
+%            node[midway,fill=white, text=cyan] {\large{\textbf{FSI}}};
+%         \draw[->,thick] (precice.south) -- (cfd.north)
+%            node[midway] {};
+%         \draw[->,thick] (precice.south) -- (aster.north west)
+%            node[midway,fill=white, text=teal] {\large{\textbf{SSI}}};
+%            
+%\end{tikzpicture}
+%\end{figure}
+%
+%\end{frame}
 
 
 \end{document}
